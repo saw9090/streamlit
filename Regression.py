@@ -30,7 +30,7 @@ N = st.select_slider(
         ,value=100)
 
 # data 생성
-if st.button('Data generate'):
+if st.button('Data generation'):
     e = np.random.normal(size=N)
     if 'X' not in st.session_state:
         st.session_state['X'] = np.random.uniform(-5,5,N)
