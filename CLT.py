@@ -90,7 +90,7 @@ ax[1].set_title('Approximate Distribution')
 ax[1].legend(loc='upper right', bbox_to_anchor=(1.8,1.0))
 st.pyplot(fig)
 
-if st.button('Data Regenerate'):
+if st.button('Data Regeneration'):
     pass
 
 
