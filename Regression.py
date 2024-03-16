@@ -12,17 +12,17 @@ st.latex(r'''Model : y_i = \beta_0 + \beta_1 x_i + \epsilon_i,\quad \epsilon_i \
 # 변수 선택
 beta_0 = st.select_slider(
     r'Select True $\beta_0$',
-    options=np.linspace(-3,3,61)
+    options=np.round(np.linspace(-3,3,61),1)
     ,value=0)
 
 beta_1 = st.select_slider(
     r'Select True $\beta_1$',
-    options=np.linspace(-3,3,61)
+    options=np.round(np.linspace(-3,3,61),1)
     ,value=1)
 
 sigma = st.select_slider(
     r'Select True $\sigma$',
-    options=np.linspace(0,4,41)
+    options=np.round(np.linspace(0,4,41),1)
     ,value=1)
 
 N = st.select_slider(
