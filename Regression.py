@@ -40,7 +40,6 @@ if st.button('Data generation'):
     st.session_state['y'] = beta_0 + beta_1 * st.session_state['X'] + sigma * e
     fig, ax = plt.subplots()
     sns.scatterplot(x=st.session_state['X'],y=st.session_state['y'],ax=ax,s=50, marker='x',color = 'black')
-    ax.set_title('Linear Regression')
     ax.set_xlim([-6,6])
     ax.set_ylim([-20,20])
     st.pyplot(fig)
