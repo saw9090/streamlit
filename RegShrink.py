@@ -13,7 +13,7 @@ st.latex(r'''Model : y_i = \beta_1 x_{i1} + \beta_2 x_{i2} + \epsilon_i,\quad \e
 
 N = st.select_slider(
         r'Select $\N$',
-        options=[50,100,500,1000]
+        options=[10,50,100,500,1000]
         ,value=500)
 
 beta_1 = st.select_slider(
@@ -28,7 +28,7 @@ beta_2 = st.select_slider(
 
 sigma = st.select_slider(
     r'Select True $\sigma$',
-    options=np.round(np.linspace(0,1,11),1)
+    options=np.round(np.linspace(0,5,51),1)
     ,value=0.3)
 
 
