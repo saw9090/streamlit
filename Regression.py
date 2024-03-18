@@ -91,7 +91,7 @@ line3, = ax.plot(grid,beta_0 + beta_1 * grid, color='blue') # true line
 legend_1 = ax.legend(handles=(line1,line2,line3),labels=(r'$\bar{y}$',option,'True line'),loc= 'upper right',fontsize = 'small')
 ax.add_artist(legend_1)
 beta_hat_0 = np.round(model.intercept_[0],5)
-beta_hat_1 = np.round(model.coef_[0],5)
+beta_hat_1 = np.round(model.coef_[0],5)[0]
 legend_2 = ax.legend(handles=(line1,line2,line3),
                      labels=(r'$\bar{y}$'+' = {}'.format(np.round(np.mean(st.session_state['y']),5)),
                              r'$\hat{\beta}_0$'+' = {}, '.format(beta_hat_0) + r'$\hat{\beta}_1$'+' = {}'.format(beta_hat_1),
