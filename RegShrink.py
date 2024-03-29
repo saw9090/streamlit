@@ -207,4 +207,4 @@ if st.button('Calculate'):
         Loss_fit()
         Generate_graph()
     else:
-        st.write('Please generate data first by clicking "Regenerate data" button.')
+        st.write('Please generate data first by clicking "Generate data" button.')
