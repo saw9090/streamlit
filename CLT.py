@@ -95,44 +95,34 @@ elif option == 'Chi-squared Distribution' :
         ax.plot(grid1, chi2.pdf(grid1,df), color = 'black')
         ax.set_title(option)
         st.pyplot(fig)
-if st.button('Regenerate data'):
-    pass
+if st.button('Generate data'):
+    fig = plt.figure(figsize=(10, 9))
 
-fig, axs = plt.subplots(3, 3, figsize=(15, 15))
+    axes = [plt.subplot2grid((4, 3), (0, i),fig=fig) for i in range(3)]
+    titles = ['First Sample','Second Sample','Third Sample']
+    colors = ['red','green','blue']
 
-axs[0, 0].axvline(mat[:, 0].mean(), color='red', linestyle='--',linewidth = 2.5 ,label = 'mean')
-axs[0, 1].axvline(mat[:, 1].mean(), color='green', linestyle='--',linewidth = 2.5 ,label = 'mean')
-axs[0, 2].axvline(mat[:, 2].mean(), color='blue', linestyle='--',linewidth = 2.5 ,label = 'mean')
+    for i, ax in enumerate(axes):
+        sns.histplot(mat[:, i], kde=True, ax=ax, color='black')
+        if option == 'Uniform Distribution':
+            ax.set_xticks([-a-1, 0, a+1])
+        ax.axvline(mat[:, i].mean(), color=colors[i], linestyle='--', linewidth=2.5, label='Mean')
+        ax.set_title(titles[i])
+        ax.set_ylabel('')
+        ax.legend(fontsize=10)
 
-for i in range(3):
-    sns.histplot(mat[:, i], kde=True, ax=axs[0, i], color='black')
-    if option == 'Uniform Distribution':
-        axs[0, i].set_xticks([-a-1,0,a+1])
-    axs[0, i].set_title(f'Sample {i+1} Histogram')
-    axs[0, i].legend(fontsize = 15)
+    ax_big = plt.subplot2grid((4,3),(1,0),fig=fig,rowspan = 3, colspan = 3)
+    sns.histplot(sample_mean, kde=True, ax=ax_big, color='gray')
+    ax_big.axvline(sample_mean[0], color='red', linestyle='-',linewidth = 2.5, label = '1st Sample Mean')
+    ax_big.axvline(sample_mean[1], color='green', linestyle='-',linewidth = 2.5, label = '2nd Sample Mean')
+    ax_big.axvline(sample_mean[2], color='blue', linestyle='-',linewidth = 2.5, label = '3rd Sample Mean')
+    ax_big.legend(fontsize = 10)
+    ax.set_ylabel('')
+    ax_big.set_title('Distribution of Sample Means')
 
-
-ax_big = plt.subplot2grid((3,3),(1,0),rowspan = 2, colspan = 3)
-sns.histplot(sample_mean, kde=True, ax=ax_big, color='gray')
-ax_big.axvline(sample_mean[0], color='red', linestyle='-',linewidth = 2.5, label = '1st Sample Mean')
-ax_big.axvline(sample_mean[1], color='green', linestyle='-',linewidth = 2.5, label = '2nd Sample Mean')
-ax_big.axvline(sample_mean[2], color='blue', linestyle='-',linewidth = 2.5, label = '3rd Sample Mean')
-ax_big.legend(fontsize = 15)
-ax_big.set_title('Distribution of Sample Means')
-
-
-axs[0, 0].set_title('First Sample')
-axs[0, 1].set_title('Second Sample')
-axs[0, 2].set_title('Third Sample')
-
-plt.tight_layout()
-st.pyplot(fig)
-
-# ax[0].set_title(option)
-# sns.histplot(sample_mean,stat='density',kde=True,ax=ax[1],color='blue',label='Sample Histogram of '+r'$\bar{X}$')
-# ax[1].plot(grid2,approx,color='black',label = 'Distribution by CLT')
-# ax[1].set_title('Approximate Distribution')
-# ax[1].legend(loc='upper right', bbox_to_anchor=(1.8,1.0))
-
+    plt.tight_layout()
+    st.pyplot(fig)
+else :
+    st.write('Click button!')
 
 
