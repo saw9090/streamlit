@@ -95,7 +95,7 @@ elif option == 'Chi-squared Distribution' :
         ax.plot(grid1, chi2.pdf(grid1,df), color = 'black')
         ax.set_title(option)
         st.pyplot(fig)
-if st.button('Data Regenerate'):
+if st.button('Regenerate data'):
     pass
 
 fig, axs = plt.subplots(3, 3, figsize=(15, 15))
