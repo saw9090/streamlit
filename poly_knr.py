@@ -63,7 +63,7 @@ if option == 'polynomial Regression':
     degree_list = [degree_1,degree_2,degree_3]
     color_list = ['blue','red','green']
     if degree_m_checkbox:
-        degree_m = st.number_input('Select m', min_value=1,max_value=20, value=4)
+        degree_m = st.number_input('Select m', min_value=1,max_value=30, value=4)
     grid = np.linspace(np.min(st.session_state['X']),np.max(st.session_state['X']),100)
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=st.session_state['X'],
