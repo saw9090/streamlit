@@ -202,7 +202,7 @@ if option == 'KNN regression':
         test_MSE = mean_squared_error(y_test,model_lr.predict(X_test.reshape(-1,1)))
         return train_MSE,test_MSE
 
-    k = st.number_input('Select maximum k', min_value=20,max_value=min([N-10,50]), value=20)
+    k = st.number_input('Select maximum k', min_value=20,max_value=50, value=20)
     MSE_matrix = np.zeros((k,2))
     for i in range(k):
         train_MSE, test_MSE = MSE(X=st.session_state['X'],y=st.session_state['y'],k=i+2)
