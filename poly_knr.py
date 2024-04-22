@@ -109,7 +109,7 @@ if option == 'polynomial Regression':
         
         return train_MSE,test_MSE
 
-    p=20
+    p=40
     MSE_matrix = np.zeros((p,2))
     for i in range(p):
         train_MSE, test_MSE = MSE(X=st.session_state['X'],y=st.session_state['y'],degree=i+1)
