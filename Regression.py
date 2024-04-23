@@ -149,6 +149,10 @@ fig.add_trace(go.Scatter(x = grid,
                          mode = 'lines',
                          line = dict(color = 'blue'),
                          name = 'β₀ = {}, '.format(beta_0) + 'β₁ = {}'.format(beta_1) + ' (True line)'))
+fig.update_layout(
+    xaxis_range=[-6, 6],
+    yaxis_range=[beta_0-5*np.abs(beta_1)-3*sigma, beta_0+5*np.abs(beta_1)+3*sigma]
+)
 st.plotly_chart(fig)
 
 
