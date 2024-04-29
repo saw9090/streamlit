@@ -14,7 +14,10 @@ from sklearn.metrics import mean_squared_error
 def Generate_data(N,a,b,sigma):
     e = np.random.normal(size=N).reshape(-1,1)
     st.session_state['X'] = np.random.uniform(0,4*np.pi,N)
-    st.session_state['y'] = np.squeeze(a*np.cos(st.session_state['X'].reshape(-1,1)) + b + sigma * e)
+    st.session_state['y'] = np.squeeze(a*np.cos(0.5*st.session_state['X'].reshape(-1,1)) + b*np.sin((2/3)*st.session_state['X'].reshape(-1,1)) + c + sigma * e)
+    e = np.random.normal(size=N).reshape(-1,1)
+    st.session_state['X_test'] = np.random.uniform(0,4*np.pi,N)
+    st.session_state['y_test'] = np.squeeze(a*np.cos(0.5*st.session_state['X_test'].reshape(-1,1)) + b*np.sin((2/3)*st.session_state['X'].reshape(-1,1)) + c + sigma * e)
     
 
 with st.sidebar :
@@ -22,14 +25,18 @@ with st.sidebar :
     st.latex(r'''y_i = a\cos(x_{i}) + b + \epsilon_i,\quad \epsilon_i \sim N(0,\sigma^2) \; and \; i=1,\cdots,N''')
     N = st.select_slider(
             r'Select $\N$',
-            options=[30,100,1000]
-           ,value=30)
+            options=[50,100,200,500,1000]
+           ,value=100)
     a = st.select_slider(
         r'Select True $a$',
         options=np.round(np.linspace(-1,1,21),1)
         ,value=1)
     b = st.select_slider(
         r'Select True $b$',
+        options=np.round(np.linspace(-1,1,21),1)
+        ,value=1)
+    c = st.select_slider(
+        r'Select True $c$',
         options=np.round(np.linspace(-1,1,21),1)
         ,value=0)
     sigma = st.select_slider(
@@ -63,13 +70,13 @@ if option == 'polynomial Regression':
     degree_list = [degree_1,degree_2,degree_3]
     color_list = ['blue','red','green']
     if degree_m_checkbox:
-        degree_m = st.number_input('Select m', min_value=1,max_value=30, value=4)
+        degree_m = st.number_input('Select m', min_value=1,max_value=20, value=4)
     grid = np.linspace(np.min(st.session_state['X']),np.max(st.session_state['X']),100)
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=st.session_state['X'],
                             y=st.session_state['y'],
                             mode = 'markers',
-                            marker = dict(color = 'black', size = 5, symbol = 'x'),
+                            marker = dict(color = 'gray', size = 5, symbol = 'x',opacity = 0.5),
                             name = 'Data'))
     for i in range(3):
         if degree_list[i] :
@@ -109,7 +116,7 @@ if option == 'polynomial Regression':
         
         return train_MSE,test_MSE
 
-    p=40
+    p=20
     MSE_matrix = np.zeros((p,2))
     for i in range(p):
         train_MSE, test_MSE = MSE(X=st.session_state['X'],y=st.session_state['y'],degree=i+1)
@@ -132,7 +139,7 @@ if option == 'polynomial Regression':
         y=MSE_matrix[:,1], 
         mode='lines+markers', 
         marker=dict(symbol='x'),
-        name='Test MSE' 
+        name='Esitmated test MSE' 
     ))
     fig.update_layout(
         title='Training and Test MSE vs Polynomial Degree(Log Scale)',
@@ -151,7 +158,6 @@ if option == 'KNN regression':
     k_checkbox = st.checkbox('custom k')
     if k_checkbox:
         k = st.number_input('Select k', min_value=1,max_value=20, value=5)
-    distance = st.checkbox('Distance weight?')
     k_list = [k1,k2,k3]
     color_list = ['blue','red','green']
     
@@ -165,10 +171,7 @@ if option == 'KNN regression':
                             name = 'Data'))
     for i in range(3):
         if k_list[i] :
-            if distance :
-                model_lr = KNeighborsRegressor(n_neighbors=i+1,weights='distance')
-            else :
-                model_lr = KNeighborsRegressor(n_neighbors=i+1)        
+            model_lr = KNeighborsRegressor(n_neighbors=i+1)        
             model_lr.fit(st.session_state['X'].reshape(-1,1),st.session_state['y'])
             fig.add_trace(go.Scatter(x=grid,
                                     y=model_lr.predict(grid.reshape(-1,1)),
@@ -176,10 +179,7 @@ if option == 'KNN regression':
                                     line = dict(color = color_list[i]),
                                     name = 'k = {}'.format(i+1)))
     if k_checkbox :
-        if distance :
-            model_lr = KNeighborsRegressor(n_neighbors=k,weights='distance')
-        else :
-            model_lr = KNeighborsRegressor(n_neighbors=k)
+        model_lr = KNeighborsRegressor(n_neighbors=k)
         model_lr.fit(st.session_state['X'].reshape(-1,1),st.session_state['y'])
         fig.add_trace(go.Scatter(x=grid,
                                 y=model_lr.predict(grid.reshape(-1,1)),
@@ -191,21 +191,17 @@ if option == 'KNN regression':
     st.divider()
 
 
-    def MSE(X,y,k,random_state = 0) :
-        if distance :
-            model_lr = KNeighborsRegressor(n_neighbors=k,weights='distance')
-        else :
-            model_lr = KNeighborsRegressor(n_neighbors=k)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=random_state)
-        model_lr.fit(X_train.reshape(-1,1),y_train)
-        train_MSE = mean_squared_error(y_train,model_lr.predict(X_train.reshape(-1,1)))
-        test_MSE = mean_squared_error(y_test,model_lr.predict(X_test.reshape(-1,1)))
+    def MSE(k,random_state = 0) :
+        model_lr = KNeighborsRegressor(n_neighbors=k)
+        model_lr.fit(st.session_state['X'].reshape(-1,1),st.session_state['y'])
+        train_MSE = mean_squared_error(st.session_state['y'],model_lr.predict(st.session_state['X'].reshape(-1,1)))
+        test_MSE = mean_squared_error(st.session_state['X_test'],model_lr.predict(st.session_state['y_test'].reshape(-1,1)))
         return train_MSE,test_MSE
 
-    k = st.number_input('Select maximum k', min_value=20,max_value=50, value=20)
+    k = st.number_input('Select maximum k', min_value=20,max_value = N, value=20)
     MSE_matrix = np.zeros((k,2))
     for i in range(k):
-        train_MSE, test_MSE = MSE(X=st.session_state['X'],y=st.session_state['y'],k=i+2)
+        train_MSE, test_MSE = MSE(k=i+1)
         MSE_matrix[i,0] = train_MSE
         MSE_matrix[i,1] = test_MSE
 
@@ -213,7 +209,7 @@ if option == 'KNN regression':
     fig = go.Figure()
     # train MSE
     fig.add_trace(go.Scatter(
-        x=np.arange(2, k+2), 
+        x=1/np.arange(1, k+1), 
         y=MSE_matrix[:,0], 
         mode='lines+markers', 
         marker=dict(symbol='x'),
@@ -221,15 +217,15 @@ if option == 'KNN regression':
     ))
     # test MSE
     fig.add_trace(go.Scatter(
-        x=np.arange(2, k+2), 
+        x=1/np.arange(1, k+1), 
         y=MSE_matrix[:,1], 
         mode='lines+markers', 
         marker=dict(symbol='x'),
-        name='Test MSE' 
+        name='Estimated Test MSE' 
     ))
     fig.update_layout(
         title='Training and Test MSE vs k',
-        xaxis_title='k',
+        xaxis_title='1/k',
         yaxis_title='Mean Squared Error',
         legend_title='MSE Type'
     )
