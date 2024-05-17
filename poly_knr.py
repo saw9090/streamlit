@@ -12,17 +12,19 @@ from sklearn.metrics import mean_squared_error
 
 
 def Generate_data(N,a,b,sigma):
-    e = np.random.normal(size=N).reshape(-1,1)
+    e_train = np.random.normal(size=N).reshape(-1,1)
+    e_test = np.random.normal(size=N).reshape(-1,1)
     st.session_state['X'] = np.random.uniform(0,4*np.pi,N)
-    st.session_state['y'] = np.squeeze(a*np.cos(0.5*st.session_state['X'].reshape(-1,1)) + b*np.sin((2/3)*st.session_state['X'].reshape(-1,1)) + c + sigma * e)
-    e = np.random.normal(size=N).reshape(-1,1)
+    st.session_state['y'] = np.squeeze(a*np.cos(0.5*st.session_state['X'].reshape(-1,1)) + b*np.sin((2/3)*st.session_state['X'].reshape(-1,1)) + c + sigma * e_train)
+    
     st.session_state['X_test'] = np.random.uniform(0,4*np.pi,N)
-    st.session_state['y_test'] = np.squeeze(a*np.cos(0.5*st.session_state['X_test'].reshape(-1,1)) + b*np.sin((2/3)*st.session_state['X'].reshape(-1,1)) + c + sigma * e)
+    st.session_state['y_test'] = np.squeeze(a*np.cos(0.5*st.session_state['X_test'].reshape(-1,1)) + b*np.sin((2/3)*st.session_state['X_test'].reshape(-1,1)) + c + sigma * e_test)
+    
     
 
 with st.sidebar :
     st.header('Data Generation(True model)')
-    st.latex(r'''y_i = a\cos(x_{i}) + b + \epsilon_i,\quad \epsilon_i \sim N(0,\sigma^2) \; and \; i=1,\cdots,N''')
+    st.latex(r'''y_i = a\cos(\frac{x_{i}}{2}) + b\sin(\frac{2x_{i}}{3}) + c + \epsilon_i,\quad \epsilon_i \sim N(0,\sigma^2) \; and \; i=1,\cdots,N''')
     N = st.select_slider(
             r'Select $\N$',
             options=[50,100,200,500,1000]
@@ -72,12 +74,18 @@ if option == 'polynomial Regression':
     if degree_m_checkbox:
         degree_m = st.number_input('Select m', min_value=1,max_value=20, value=4)
     grid = np.linspace(np.min(st.session_state['X']),np.max(st.session_state['X']),100)
+    true_y = a * np.cos(0.5 * grid) + b * np.sin((2 / 3) * grid) + c
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=st.session_state['X'],
                             y=st.session_state['y'],
                             mode = 'markers',
                             marker = dict(color = 'gray', size = 5, symbol = 'x',opacity = 0.5),
                             name = 'Data'))
+    fig.add_trace(go.Scatter(x=grid,
+                             y=true_y,
+                             mode='lines',
+                             line=dict(color='black', dash='dash'),
+                             name='True Model'))
     for i in range(3):
         if degree_list[i] :
             model_lr = make_pipeline(StandardScaler(),
@@ -105,23 +113,24 @@ if option == 'polynomial Regression':
     st.divider()
 
 
-    def MSE(X,y,degree,random_state = 0) :
+    def MSE(degree,random_state = 0) :
         model_lr = make_pipeline(StandardScaler(),
                                 PolynomialFeatures(degree=degree, include_bias=False),
                                 LinearRegression())
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=random_state)
-        model_lr.fit(X_train.reshape(-1,1),y_train)
-        train_MSE = mean_squared_error(y_train,model_lr.predict(X_train.reshape(-1,1)))
-        test_MSE = mean_squared_error(y_test,model_lr.predict(X_test.reshape(-1,1)))
-        
-        return train_MSE,test_MSE
+        model_lr.fit(st.session_state['X'].reshape(-1,1),st.session_state['y'])
+        train_MSE = mean_squared_error(st.session_state['y'],model_lr.predict(st.session_state['X'].reshape(-1,1)))
+        test_MSE = mean_squared_error(st.session_state['y_test'],model_lr.predict(st.session_state['X_test'].reshape(-1,1)))
+        True_y_test = a * np.cos(0.5 * st.session_state['X_test']) + b * np.sin((2 / 3) * st.session_state['X_test']) + c
+        True_test_MSE = mean_squared_error(True_y_test,model_lr.predict(st.session_state['X_test'].reshape(-1,1)))
+        return train_MSE,test_MSE, True_test_MSE
 
     p=20
-    MSE_matrix = np.zeros((p,2))
+    MSE_matrix = np.zeros((p,3))
     for i in range(p):
-        train_MSE, test_MSE = MSE(X=st.session_state['X'],y=st.session_state['y'],degree=i+1)
+        train_MSE, test_MSE, True_test_MSE = MSE(degree=i+1)
         MSE_matrix[i,0] = train_MSE
         MSE_matrix[i,1] = test_MSE
+        MSE_matrix[i,2] = True_test_MSE
 
 
     fig = go.Figure()
@@ -141,11 +150,19 @@ if option == 'polynomial Regression':
         marker=dict(symbol='x'),
         name='Esitmated test MSE' 
     ))
+    # True test MSE
+    fig.add_trace(go.Scatter(
+        x=np.arange(1, p+1), 
+        y=MSE_matrix[:,2], 
+        mode='lines', 
+        line=dict(color='black', dash='dash'),
+        name='True Test MSE' 
+    ))
+
     fig.update_layout(
-        title='Training and Test MSE vs Polynomial Degree(Log Scale)',
+        title='Training and Test MSE vs Polynomial Degree',
         xaxis_title='Degree of Polynomial',
-        yaxis_title='Mean Squared Error (log scale)',
-        yaxis_type='log', 
+        yaxis_title='Mean Squared Error',
         legend_title='MSE Type'
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -162,13 +179,20 @@ if option == 'KNN regression':
     color_list = ['blue','red','green']
     
     grid = np.linspace(np.min(st.session_state['X']),np.max(st.session_state['X']),100)
+    true_y = a * np.cos(0.5 * grid) + b * np.sin((2 / 3) * grid) + c
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=st.session_state['X'],
                             y=st.session_state['y'],
                             mode = 'markers',
-                            marker = dict(color = 'black', size = 5, symbol = 'x'),
+                            marker = dict(color = 'gray', size = 5, symbol = 'x',opacity = 0.5),
                             name = 'Data'))
+    fig.add_trace(go.Scatter(x=grid,
+                             y=true_y,
+                             mode='lines',
+                             line=dict(color='black', dash='dash'),
+                             name='True Model'))
+    
     for i in range(3):
         if k_list[i] :
             model_lr = KNeighborsRegressor(n_neighbors=i+1)        
@@ -190,20 +214,23 @@ if option == 'KNN regression':
     st.plotly_chart(fig, use_container_width=True)
     st.divider()
 
-
     def MSE(k,random_state = 0) :
         model_lr = KNeighborsRegressor(n_neighbors=k)
         model_lr.fit(st.session_state['X'].reshape(-1,1),st.session_state['y'])
         train_MSE = mean_squared_error(st.session_state['y'],model_lr.predict(st.session_state['X'].reshape(-1,1)))
-        test_MSE = mean_squared_error(st.session_state['X_test'],model_lr.predict(st.session_state['y_test'].reshape(-1,1)))
-        return train_MSE,test_MSE
+        test_MSE = mean_squared_error(st.session_state['y_test'],model_lr.predict(st.session_state['X_test'].reshape(-1,1)))
+        True_y_test = a * np.cos(0.5 * st.session_state['X_test']) + b * np.sin((2 / 3) * st.session_state['X_test']) + c
+        True_test_MSE = mean_squared_error(True_y_test,model_lr.predict(st.session_state['X_test'].reshape(-1,1)))
+        return train_MSE,test_MSE, True_test_MSE
+    
 
     k = st.number_input('Select maximum k', min_value=20,max_value = N, value=20)
-    MSE_matrix = np.zeros((k,2))
+    MSE_matrix = np.zeros((k,3))
     for i in range(k):
-        train_MSE, test_MSE = MSE(k=i+1)
+        train_MSE, test_MSE, True_test_MSE = MSE(k=i+1)
         MSE_matrix[i,0] = train_MSE
         MSE_matrix[i,1] = test_MSE
+        MSE_matrix[i,2] = True_test_MSE
 
 
     fig = go.Figure()
@@ -222,6 +249,14 @@ if option == 'KNN regression':
         mode='lines+markers', 
         marker=dict(symbol='x'),
         name='Estimated Test MSE' 
+    ))
+   # True test MSE
+    fig.add_trace(go.Scatter(
+        x=1/np.arange(1, k+1), 
+        y=MSE_matrix[:,2], 
+        mode='lines', 
+        line=dict(color='black', dash='dash'),
+        name='True Test MSE' 
     ))
     fig.update_layout(
         title='Training and Test MSE vs k',
