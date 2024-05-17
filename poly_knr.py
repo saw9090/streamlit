@@ -259,7 +259,7 @@ if option == 'KNN regression':
         name='True Test MSE' 
     ))
     fig.update_layout(
-        title='Training and Test MSE vs k',
+        title='Training and Test MSE vs 1/k',
         xaxis_title='1/k',
         yaxis_title='Mean Squared Error',
         legend_title='MSE Type'
